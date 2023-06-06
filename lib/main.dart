@@ -45,6 +45,7 @@ class SerialConsoleState extends State<SerialConsole> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(fontFamily: "Source Code Pro"),
       home: Scaffold(
         body: Column(children: [
           UartControls(
