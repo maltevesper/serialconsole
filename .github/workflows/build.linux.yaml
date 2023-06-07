@@ -1,0 +1,42 @@
+name: Linux Build
+run-name: ${{ github.actor }} 🐧 Linux Release 🚀
+on: 
+  workflow_call:
+
+jobs:
+  linuxBuild:
+    name: Linux build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+        - name: checkout
+          uses: actions/checkout@v3
+          with:
+            submodules: recursive
+        - name: install flutter
+          uses: subosito/flutter-action@v2
+          with:
+            flutter-version: '3.10.2'
+            channel: 'stable'
+            cache: true
+            # cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:' # optional, change this to force refresh cache
+            # cache-path: ${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:
+        - name: install dependencies
+          run: |
+            sudo apt-get update --assume-yes
+            sudo apt-get install --assume-yes \
+              ninja-build   \
+              libgtk-3-dev
+        - name: build
+          run: flutter build linux --verbose --release # --split-debug-info=<v1.2.3/> 
+        - name: package
+          run: |
+            mkdir packages
+            tar --transform 's,^\.,serialconsole,' -czvf packages/linux_serial-console_${{github.ref_name}}.tar.gz -C build/linux/x64/release/bundle/ .
+        - name: publish release
+          run: |
+            gh release upload ${{github.ref_name}} packages/linux_serial-console_${{github.ref_name}}.tar.gz #Linux tar.gz
