@@ -5,38 +5,56 @@ on:
     tags:
       - "v*.*.*"
 jobs:
-  linuxBuild:
-    name: Linux build
+  PreRelease:
+    name: PreRelease preparation
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
 
     steps:
-        # TODO: matrix build, bump version (cider?), tag, better bundling
-        - name: checkout
-          uses: actions/checkout@v3
-        - name: install flutter
-          uses: subosito/flutter-action@v2
-          with:
-            flutter-version: '3.10.2'
-            channel: 'stable'
-            cache: true
-            # cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:' # optional, change this to force refresh cache
-            # cache-path: ${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:
-        - name: install dependencies
-          run: |
-            sudo apt-get update --assume-yes
-            sudo apt-get install --assume-yes \
-              ninja-build   \
-              libgtk-3-dev
-        - name: build
-          run: flutter build linux --verbose --release # --split-debug-info=<v1.2.3/> 
-        - name: package
-          run: |
-            mkdir packages
-            tar --transform 's,^\.,serialconsole,' -czvf packages/linux-serial_console.tar.gz -C build/linux/x64/release/bundle/ .
-        - name: release
-          uses: softprops/action-gh-release@v1
-          with:
-            files: |
-              packages/*
+      - name: checkout
+        uses: actions/checkout@v3
+      # is just dart more lightweight?
+      - name: install flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.10.2'
+          channel: 'stable'
+          cache: true
+      - name: install cider
+        run: flutter pub global activate cider
+      - name: check no pending release notes
+        run: |
+          if [ "$(cider describe)" != "## Unreleased" ]; then
+            echo "The release notes were not empty";
+            cider describe
+            exit 1;
+          fi
+        # TODO: bump version (cider?), publish release log?
+      - name: draft release
+        run: gh release create ${{github.ref_name}} --draft --notes-file <(cider describe $(cider version))
+
+  LinuxBuild:
+    name: Linux Build
+    uses: ./.github/workflows/build.linux.yaml
+    needs: PreRelease
+    permissions:
+      contents: write
+
+  FinalizeRelease:
+    name: Publish release
+    runs-on: ubuntu-latest
+    needs: [LinuxBuild]
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: publish release
+        run: gh release edit ${{github.ref_name}} --draft=false
+
