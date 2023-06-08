@@ -46,4 +46,4 @@ jobs:
           working-directory: build\windows\runner\Release
         - name: publish release
           run: |
-            gh release upload ${{github.ref_name}} packages/windows_serial-console_${{github.ref_name}}.zip#Windows zip
+            gh release upload ${{github.ref_name}} packages/windows_serial-console_${{github.ref_name}}.zip #Windows zip
