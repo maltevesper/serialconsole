@@ -43,10 +43,19 @@ jobs:
     permissions:
       contents: write
 
+  WindowsBuild:
+    name: Windows Build
+    uses: ./.github/workflows/build.windows.yaml
+    needs: PreRelease
+    permissions:
+      contents: write
+
   FinalizeRelease:
     name: Publish release
     runs-on: ubuntu-latest
-    needs: [LinuxBuild]
+    needs: 
+      - LinuxBuild
+      - WindowsBuild
     permissions:
       contents: write
     env:
