@@ -34,7 +34,12 @@ jobs:
           fi
         # TODO: bump version (cider?), publish release log?
       - name: draft release
-        run: gh release create ${{github.ref_name}} --draft --notes-file <(cider describe $(cider version))
+        run: |
+          if gh release list | grep ${{github.ref_name}} --quiet; then
+            echo "A release named ${{github.ref_name}} already exists."
+            exit 1
+          fi
+          gh release create ${{github.ref_name}} --draft --notes-file <(cider describe $(cider version))
 
   LinuxBuild:
     name: Linux Build
