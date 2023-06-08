@@ -41,7 +41,7 @@ jobs:
           working-directory: build\windows\runner\Release
         - name: package
           run: |
-            New-Item --Path ${env:GITHUB_WORKSPACE} -ItemType "directory" -Name "packages"
+            New-Item -Path ${env:GITHUB_WORKSPACE} -ItemType "directory" -Name "packages"
             compress-archive -Path * -DestinationPath ${env:GITHUB_WORKSPACE}\packages\windows_serial-console_${{github.ref_name}}.zip
           working-directory: build\windows\runner\Release
         - name: publish release
