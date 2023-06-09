@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Use source code pro as default font
 
+### Changed
+- Switched from libserial to flutter\_libserial. libserial now ships with serial-console.
+
 ## [1.0.0] - 2023-06-07
 
 Initial release. It aint much, but it has the essentials: Connect, select, send input.
